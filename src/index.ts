@@ -19,8 +19,8 @@ const sfmcConfig = {
     authBaseUri: process.env.SFMC_AUTH_BASE_URI || "",
     restBaseUri: process.env.SFMC_REST_BASE_URI || "",
     accountId: process.env.SFMC_ACCOUNT_ID,
-    // Add proxy settings if needed
-    proxy: process.env.HTTP_PROXY || process.env.HTTPS_PROXY || undefined
+    proxy: process.env.HTTP_PROXY || process.env.HTTPS_PROXY || undefined,
+    rejectUnauthorized: process.env.SFMC_REJECT_UNAUTHORIZED !== 'false'
 };
 
 // Initialize SFMC client

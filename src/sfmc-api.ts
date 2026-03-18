@@ -23,15 +23,13 @@ export class SFMCAPIService {
     constructor(config: SFMCConfig) {
         this.config = config;
 
-        // Create axios instance with simpler configuration
+        // Create axios instance with configurable SSL validation
         this.axiosInstance = axios.create({
             headers: {
                 'Content-Type': 'application/json',
             },
-            // Use a simpler HTTPS agent configuration
             httpsAgent: new https.Agent({
-                // For production systems, always enable proper certificate validation
-                rejectUnauthorized: true
+                rejectUnauthorized: config.rejectUnauthorized !== false,
             }),
             proxy: this.createProxyConfig(this.config.proxy),
         });
