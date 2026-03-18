@@ -206,4 +206,36 @@ export class SFMCAPIService {
     async deleteData<T = any>(endpoint: string, parameters?: Record<string, string | number | boolean>): Promise<T> {
         return this.makeRequest<T>('delete', endpoint, undefined, parameters);
     }
+
+    async makeSoapRequest(action: string, body: string): Promise<string> {
+        try {
+            const accessToken = await this.getAccessToken();
+            const soapBaseUri = this.config.restBaseUri.replace('.rest.', '.soap.');
+
+            const response = await this.axiosInstance.post(
+                `${soapBaseUri}/Service.asmx`,
+                body,
+                {
+                    headers: {
+                        'Content-Type': 'text/xml',
+                        'SOAPAction': action,
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            return typeof response.data === 'string'
+                ? response.data
+                : JSON.stringify(response.data);
+        }
+        catch (error: any) {
+            if (error.response) {
+                throw new Error(`SFMC SOAP error (${error.response.status}): ${error.response.data}`);
+            } else if (error.request) {
+                throw new Error('SFMC SOAP request failed: No response received');
+            } else {
+                throw new Error(`SFMC SOAP request failed: ${error.message}`);
+            }
+        }
+    }
 }

@@ -84,6 +84,25 @@ server.tool("sfmc_rest_request", "Make a request to any SFMC REST API endpoint",
     }
 });
 
+server.tool("sfmc_soap_request", "Make a request to the SFMC SOAP API", {
+    action: z.string().describe("SOAP Action (e.g. Retrieve, Create, Update, Delete, Execute)"),
+    body: z.string().describe("Full SOAP envelope XML as a string"),
+}, async ({ action, body }) => {
+    try {
+        const result = await sfmcClient.makeSoapRequest(action, body);
+        return {
+            content: [{ type: "text", text: result }],
+        };
+    }
+    catch (error: any) {
+        console.error(`ERROR executing SOAP action ${action}:`, error);
+        return {
+            content: [{ type: "text", text: `Error: ${error.message}` }],
+            isError: true,
+        };
+    }
+});
+
 // Start the server
 async function main() {
     try {
@@ -91,6 +110,7 @@ async function main() {
         console.error(`Connected to SFMC as client ID: ${sfmcConfig.clientId}`);
         console.error(`Using auth base URI: ${sfmcConfig.authBaseUri}`);
         console.error(`Using rest base URI: ${sfmcConfig.restBaseUri}`);
+        console.error(`Using soap base URI: ${sfmcConfig.restBaseUri.replace('.rest.', '.soap.')}`);
         
         const transport = new StdioServerTransport();
         await server.connect(transport);
