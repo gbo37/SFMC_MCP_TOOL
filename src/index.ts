@@ -43,12 +43,12 @@ server.tool("sfmc_rest_request", "Make a request to any SFMC REST API endpoint",
     // Request Parameters
     method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]).describe("HTTP method"),
     endpoint: z.string().describe("API endpoint path starting with /"),
-    data: z.any().optional().describe("Request body for POST, PUT, PATCH requests (JSON)"),
+    data: z.string().optional().describe("Request body for POST, PUT, PATCH requests as a JSON string"),
     parameters: z.record(z.union([z.string(), z.number(), z.boolean()])).optional().describe("Query parameters"),
 }, async ({ method, endpoint, data, parameters }) => {
     try {
         // Make the API request using the pre-configured SFMC client
-        const result = await sfmcClient.makeRequest(method, endpoint, data, parameters);
+        const result = await sfmcClient.makeRequest(method, endpoint, data ? JSON.parse(data) : undefined, parameters);
         
         return {
             content: [
