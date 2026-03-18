@@ -85,7 +85,7 @@ server.tool("sfmc_get_data_extension", "Get rows from a SFMC Data Extension by k
     try {
         // Construct the endpoint
         const endpoint = `/data/v1/customobjectdata/key/${key}/rowset`;
-        
+
         // Construct parameters
         const parameters: Record<string, string | number | boolean> = {};
         if (filter) parameters.$filter = filter;
@@ -93,10 +93,10 @@ server.tool("sfmc_get_data_extension", "Get rows from a SFMC Data Extension by k
         if (orderBy) parameters.$orderBy = orderBy;
         if (page) parameters.$page = page;
         if (pageSize) parameters.$pageSize = pageSize;
-        
+
         // Make the request
         const result = await sfmcClient.getData(endpoint, parameters);
-        
+
         return {
             content: [
                 {
@@ -120,6 +120,25 @@ server.tool("sfmc_get_data_extension", "Get rows from a SFMC Data Extension by k
     }
 });
 
+server.tool("sfmc_soap_request", "Make a request to the SFMC SOAP API", {
+    action: z.string().describe("SOAP Action (e.g. Retrieve, Create, Update, Delete, Execute)"),
+    body: z.string().describe("Full SOAP envelope XML as a string"),
+}, async ({ action, body }) => {
+    try {
+        const result = await sfmcClient.makeSoapRequest(action, body);
+        return {
+            content: [{ type: "text", text: result }],
+        };
+    }
+    catch (error: any) {
+        console.error(`ERROR executing SOAP action ${action}:`, error);
+        return {
+            content: [{ type: "text", text: `Error: ${error.message}` }],
+            isError: true,
+        };
+    }
+});
+
 // Start the server
 async function main() {
     try {
@@ -127,6 +146,7 @@ async function main() {
         console.error(`Connected to SFMC as client ID: ${sfmcConfig.clientId}`);
         console.error(`Using auth base URI: ${sfmcConfig.authBaseUri}`);
         console.error(`Using rest base URI: ${sfmcConfig.restBaseUri}`);
+        console.error(`Using soap base URI: ${sfmcConfig.restBaseUri.replace('.rest.', '.soap.')}`);
         
         const transport = new StdioServerTransport();
         await server.connect(transport);
