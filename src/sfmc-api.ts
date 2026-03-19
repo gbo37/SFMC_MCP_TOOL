@@ -214,19 +214,43 @@ export class SFMCAPIService {
         return this.makeRequest<T>('delete', endpoint, undefined, parameters);
     }
 
+    /**
+     * Inject the bearer token as a <fueloauth> element into the SOAP envelope Header.
+     * SFMC SOAP auth requires the token inside the envelope, not in the HTTP Authorization header.
+     */
+    private injectSoapAuth(body: string, accessToken: string): string {
+        const fueloauth = `<fueloauth xmlns="http://exacttarget.com">${accessToken}</fueloauth>`;
+
+        // Inject into existing Header element (supports any namespace prefix)
+        const headerOpenRegex = /(<(?:[a-zA-Z]+:)?Header[^>]*>)/i;
+        if (headerOpenRegex.test(body)) {
+            return body.replace(headerOpenRegex, `$1${fueloauth}`);
+        }
+
+        // No Header — insert one before the Body element
+        const bodyOpenRegex = /(<(?:([a-zA-Z]+):)?Body[^>]*>)/i;
+        const bodyMatch = body.match(bodyOpenRegex);
+        if (bodyMatch) {
+            const prefix = bodyMatch[2] ? `${bodyMatch[2]}:` : '';
+            return body.replace(bodyOpenRegex, `<${prefix}Header>${fueloauth}</${prefix}Header>$1`);
+        }
+
+        return body;
+    }
+
     async makeSoapRequest(action: string, body: string): Promise<string> {
         try {
             const accessToken = await this.getAccessToken();
             const soapBaseUri = this.config.restBaseUri.replace('.rest.', '.soap.');
+            const authenticatedBody = this.injectSoapAuth(body, accessToken);
 
             const response = await this.axiosInstance.post(
                 `${soapBaseUri}/Service.asmx`,
-                body,
+                authenticatedBody,
                 {
                     headers: {
                         'Content-Type': 'text/xml',
                         'SOAPAction': action,
-                        'Authorization': `Bearer ${accessToken}`
                     }
                 }
             );
