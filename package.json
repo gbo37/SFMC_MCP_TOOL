@@ -1,0 +1,32 @@
+{
+  "name": "sfmc-mcp-tool",
+  "version": "1.0.0",
+  "description": "MCP tool for connecting Claude to Salesforce Marketing Cloud REST API",
+  "type": "module",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node build/index.js",
+    "dev": "tsc && node build/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "sfmc",
+    "salesforce",
+    "marketing",
+    "cloud"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "typescript": "^5.3.3"
+  }
+}
